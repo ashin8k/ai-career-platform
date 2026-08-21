@@ -1,0 +1,37 @@
+[
+  {
+    "pair_id": 1,
+    "resume_text": "Alex Mercer. Skills: Python, PyTorch, Scikit-learn, FastAPI, Docker, PostgreSQL, Machine Learning, SQL. Experience in building ML models and REST APIs.",
+    "jd_text": "Machine Learning Engineer. Requirements: Python, PyTorch, Scikit-learn, FastAPI, Docker, PostgreSQL, Machine Learning.",
+    "ground_truth_relevance": 1,
+    "ground_truth_similarity": 0.95
+  },
+  {
+    "pair_id": 2,
+    "resume_text": "Sarah Jenkins. Skills: HTML, CSS, JavaScript, React, Figma, UI/UX Design, Photoshop. Web developer creating front-end web apps.",
+    "jd_text": "Senior Machine Learning Engineer. Requirements: Python, PyTorch, CUDA, C++, Distributed ML, Kubernetes.",
+    "ground_truth_relevance": 0,
+    "ground_truth_similarity": 0.10
+  },
+  {
+    "pair_id": 3,
+    "resume_text": "David Chen. Skills: Python, SQL, Pandas, NumPy, Scikit-learn, Matplotlib, Data Analysis, Tableau. Data Analyst with 2 years experience.",
+    "jd_text": "Data Scientist. Requirements: Python, SQL, Pandas, NumPy, Scikit-learn, Machine Learning, Statistics.",
+    "ground_truth_relevance": 1,
+    "ground_truth_similarity": 0.85
+  },
+  {
+    "pair_id": 4,
+    "resume_text": "Emily Rodriguez. Skills: Java, Spring Boot, MySQL, Microservices, REST API, Git. Backend Java developer.",
+    "jd_text": "Python AI Microservice Engineer. Requirements: Python, FastAPI, Docker, AWS, PostgreSQL.",
+    "ground_truth_relevance": 0,
+    "ground_truth_similarity": 0.35
+  },
+  {
+    "pair_id": 5,
+    "resume_text": "Michael Chang. Skills: Python, TensorFlow, PyTorch, Computer Vision, OpenCV, Deep Learning, Docker, C++. AI Researcher specializing in object detection.",
+    "jd_text": "Computer Vision Engineer. Requirements: Python, PyTorch, OpenCV, Computer Vision, Deep Learning, C++.",
+    "ground_truth_relevance": 1,
+    "ground_truth_similarity": 0.90
+  }
+]
