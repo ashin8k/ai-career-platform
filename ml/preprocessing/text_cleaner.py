@@ -11,29 +11,29 @@ class TextCleaner:
 
     # Tech-specific regex protection mapping to temporary placeholders
     TECH_PROTECTION_MAP = {
-        r"\bc\+\+\b": "__TECH_CPP__",
-        r"\bc#\b": "__TECH_CSHARP__",
-        r"\b\.net\b": "__TECH_DOTNET__",
-        r"\bnode\.js\b": "__TECH_NODEJS__",
-        r"\breact\.js\b": "__TECH_REACTJS__",
-        r"\bvue\.js\b": "__TECH_VUEJS__",
-        r"\bscikit-learn\b": "__TECH_SCIKITLEARN__",
-        r"\bci/cd\b": "__TECH_CICD__",
-        r"\btcp/ip\b": "__TECH_TCPIP__",
-        r"\bai/ml\b": "__TECH_AIML__",
+        r"(?<!\w)c\+\+(?!\w)": "__tech_cpp__",
+        r"(?<!\w)c#(?!\w)": "__tech_csharp__",
+        r"(?<!\w)\.net\b": "__tech_dotnet__",
+        r"(?<!\w)node\.js\b": "__tech_nodejs__",
+        r"(?<!\w)react\.js\b": "__tech_reactjs__",
+        r"(?<!\w)vue\.js\b": "__tech_vuejs__",
+        r"(?<!\w)scikit-learn\b": "__tech_scikitlearn__",
+        r"(?<!\w)ci/cd\b": "__tech_cicd__",
+        r"(?<!\w)tcp/ip\b": "__tech_tcpip__",
+        r"(?<!\w)ai/ml\b": "__tech_aiml__",
     }
 
     REVERSE_PROTECTION_MAP = {
-        "__TECH_CPP__": "c++",
-        "__TECH_CSHARP__": "c#",
-        "__TECH_DOTNET__": ".net",
-        "__TECH_NODEJS__": "node.js",
-        "__TECH_REACTJS__": "react.js",
-        "__TECH_VUEJS__": "vue.js",
-        "__TECH_SCIKITLEARN__": "scikit-learn",
-        "__TECH_CICD__": "ci/cd",
-        "__TECH_TCPIP__": "tcp/ip",
-        "__TECH_AIML__": "ai/ml",
+        "__tech_cpp__": "c++",
+        "__tech_csharp__": "c#",
+        "__tech_dotnet__": ".net",
+        "__tech_nodejs__": "node.js",
+        "__tech_reactjs__": "react.js",
+        "__tech_vuejs__": "vue.js",
+        "__tech_scikitlearn__": "scikit-learn",
+        "__tech_cicd__": "ci/cd",
+        "__tech_tcpip__": "tcp/ip",
+        "__tech_aiml__": "ai/ml",
     }
 
     # Common generic English stopwords (avoiding single-letter languages like 'c', 'r')
@@ -70,8 +70,9 @@ class TextCleaner:
         # Step 1: Unicode normalization (NFKD)
         text = unicodedata.normalize("NFKD", text)
 
-        # Step 2: Remove bullet points and special bullet characters
-        text = re.sub(r"[\u2022\u2023\u25b6\u25c0\u25e6\u25a0\u25a1\u25ca\u25cb\u25cf\u25fe\u25ff\u2212\-•▪*]", " ", text)
+        # Step 2: Remove bullet points and special bullet characters (without stripping internal hyphens)
+        text = re.sub(r"[\u2022\u2023\u25b6\u25c0\u25e6\u25a0\u25a1\u25ca\u25cb\u25cf\u25fe\u25ff\u2212•▪*]", " ", text)
+        text = re.sub(r"(?:^\s*[-]\s+|\s+[-]\s+)", " ", text)
 
         # Step 3: Convert to lowercase
         text = text.lower()

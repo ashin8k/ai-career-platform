@@ -1,7 +1,5 @@
 import io
 from typing import Dict, Any, Optional
-import pdfplumber
-import fitz  # PyMuPDF
 
 
 class PDFExtractor:
@@ -30,6 +28,7 @@ class PDFExtractor:
         Extract text and metadata from raw PDF byte stream (e.g. uploaded via FastAPI stream).
         """
         try:
+            import pdfplumber
             with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
                 pages_text = []
                 for i, page in enumerate(pdf.pages):
@@ -50,6 +49,7 @@ class PDFExtractor:
             raise RuntimeError(f"Failed to extract text from PDF bytes: {str(e)}")
 
     def _extract_with_pdfplumber(self, file_path: str) -> Dict[str, Any]:
+        import pdfplumber
         with pdfplumber.open(file_path) as pdf:
             pages_text = []
             for page in pdf.pages:
@@ -66,6 +66,7 @@ class PDFExtractor:
             }
 
     def _extract_with_pymupdf(self, file_path: str) -> Dict[str, Any]:
+        import fitz  # PyMuPDF
         doc = fitz.open(file_path)
         pages_text = []
         for page in doc:
@@ -82,6 +83,7 @@ class PDFExtractor:
         }
 
     def _extract_bytes_with_pymupdf(self, pdf_bytes: bytes) -> Dict[str, Any]:
+        import fitz  # PyMuPDF
         doc = fitz.open(stream=pdf_bytes, filetype="pdf")
         pages_text = []
         for page in doc:
