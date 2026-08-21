@@ -4,11 +4,15 @@ Skill Extraction Subpackage: Section segmentation, taxonomy matching, and skill 
 from .taxonomy import SKILL_TAXONOMY, SKILL_ALIASES, normalize_skill_name
 from .section_extractor import SectionExtractor
 from .skill_extractor import SkillExtractor
+from .gap_analyzer import SkillGapAnalyzer
+from .ats_analyzer import ATSAnalyzer
 
 __all__ = [
     "SKILL_TAXONOMY",
     "SKILL_ALIASES",
     "normalize_skill_name",
     "SectionExtractor",
-    "SkillExtractor"
+    "SkillExtractor",
+    "SkillGapAnalyzer",
+    "ATSAnalyzer"
 ]
