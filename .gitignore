@@ -23,5 +23,7 @@ build/
 dist/
 *.egg-info/
 
-# Data caches
+# Data caches & local SQLite DBs
 *.log
+*.db
+ai_career_platform.db
