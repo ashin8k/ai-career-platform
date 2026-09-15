@@ -9,16 +9,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy dependencies
+# Copy requirements
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy source code
+# Copy project source code
 COPY . .
 
-# Expose FastAPI port
-EXPOSE 8000
-# Expose Streamlit port
-EXPOSE 8501
+# Ensure entrypoint script is executable
+RUN chmod +x /app/entrypoint.sh
 
-CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Expose Hugging Face default port 7860
+EXPOSE 7860
+
+# Launch both FastAPI backend and Streamlit frontend via entrypoint script
+CMD ["/app/entrypoint.sh"]
