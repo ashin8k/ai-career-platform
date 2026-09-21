@@ -77,7 +77,11 @@ st.markdown('<div class="sub-header">Upload your resume and target job descripti
 
 # Sidebar - Mode Selection
 st.sidebar.header("⚙️ Execution Mode")
-mode = st.sidebar.radio("Choose Backend Processing", ["Local FastAPI Backend", "Direct ML Pipeline (In-Process)"])
+mode = st.sidebar.radio(
+    "Choose Backend Processing",
+    ["Direct ML Pipeline (Cloud & Local)", "Local FastAPI REST API"],
+    index=0
+)
 
 # Initialize Session State
 if "resume_data" not in st.session_state:
@@ -115,64 +119,67 @@ if st.button("🚀 Analyze Resume & Match Job", type="primary", use_container_wi
         st.error("Please paste a target job description!")
     else:
         with st.spinner("Analyzing resume PDF, extracting skills, running hybrid matchers & ATS audit..."):
-            try:
-                if mode == "Local FastAPI Backend":
-                    # Call REST API endpoints
+            run_direct = (mode == "Direct ML Pipeline (Cloud & Local)")
+            
+            if not run_direct:
+                try:
+                    # Attempt REST API endpoints
                     files = {"file": (uploaded_file.name, uploaded_file.getvalue(), "application/pdf")}
-                    res_upload = requests.post(f"{API_BASE_URL}/resume/upload", files=files)
-                    if res_upload.status_code != 200:
-                        st.error(f"Resume API upload failed: {res_upload.text}")
-                        st.stop()
-                    resume_id = res_upload.json()["resume_id"]
+                    res_upload = requests.post(f"{API_BASE_URL}/resume/upload", files=files, timeout=5)
+                    if res_upload.status_code == 200:
+                        resume_id = res_upload.json()["resume_id"]
+                        res_jd = requests.post(
+                            f"{API_BASE_URL}/job/analyze",
+                            json={"title": jd_title, "job_description_text": jd_text},
+                            timeout=5
+                        )
+                        jd_id = res_jd.json()["jd_id"]
+                        res_match = requests.post(
+                            f"{API_BASE_URL}/match",
+                            json={"resume_id": resume_id, "jd_id": jd_id},
+                            timeout=10
+                        )
+                        analysis_id = res_match.json()["analysis_id"]
+                        res_details = requests.get(f"{API_BASE_URL}/analysis/{analysis_id}", timeout=5)
+                        st.session_state.match_results = res_details.json()
+                    else:
+                        run_direct = True
+                except Exception:
+                    # Automatic fallback if local REST API is unreachable
+                    run_direct = True
 
-                    res_jd = requests.post(
-                        f"{API_BASE_URL}/job/analyze",
-                        json={"title": jd_title, "job_description_text": jd_text}
-                    )
-                    jd_id = res_jd.json()["jd_id"]
+            if run_direct:
+                # Direct ML Pipeline Execution (Works 100% self-contained in Cloud & Streamlit Cloud)
+                from ml.preprocessing.pdf_extractor import PDFExtractor
+                from ml.skill_extraction.skill_extractor import SkillExtractor
+                from ml.skill_extraction.gap_analyzer import SkillGapAnalyzer
+                from ml.skill_extraction.ats_analyzer import ATSAnalyzer
+                from ml.matching.hybrid_matcher import HybridMatcher
+                from ml.reasoning.ai_explainer import AIExplainer
 
-                    res_match = requests.post(
-                        f"{API_BASE_URL}/match",
-                        json={"resume_id": resume_id, "jd_id": jd_id}
-                    )
-                    analysis_id = res_match.json()["analysis_id"]
+                pdf_ext = PDFExtractor()
+                pdf_res = pdf_ext.extract_text_from_bytes(uploaded_file.getvalue())
+                raw_resume = pdf_res["text"]
 
-                    res_details = requests.get(f"{API_BASE_URL}/analysis/{analysis_id}")
-                    st.session_state.match_results = res_details.json()
-                else:
-                    # In-process direct ML pipeline call
-                    from ml.preprocessing.pdf_extractor import PDFExtractor
-                    from ml.skill_extraction.skill_extractor import SkillExtractor
-                    from ml.skill_extraction.gap_analyzer import SkillGapAnalyzer
-                    from ml.skill_extraction.ats_analyzer import ATSAnalyzer
-                    from ml.matching.hybrid_matcher import HybridMatcher
-                    from ml.reasoning.ai_explainer import AIExplainer
+                hybrid = HybridMatcher()
+                match_res = hybrid.match(raw_resume, jd_text)
+                gap_res = SkillGapAnalyzer().analyze_gap(raw_resume, jd_text)
+                ats_res = ATSAnalyzer().analyze_resume(raw_resume, jd_text)
+                report = AIExplainer().generate_full_analysis(raw_resume, jd_text, match_res, ats_res)
 
-                    pdf_ext = PDFExtractor()
-                    pdf_res = pdf_ext.extract_text_from_bytes(uploaded_file.getvalue())
-                    raw_resume = pdf_res["text"]
+                st.session_state.match_results = {
+                    "overall_match_percentage": match_res["overall_match_percentage"],
+                    "skill_match_percentage": match_res["skill_match_percentage"],
+                    "tfidf_match_percentage": match_res["tfidf_match_percentage"],
+                    "semantic_embedding_percentage": match_res["semantic_embedding_percentage"],
+                    "ats_score": ats_res["ats_score"],
+                    "matching_skills": gap_res["matching_skills"],
+                    "missing_skills": gap_res["missing_skills"],
+                    "partial_skills": gap_res["partial_skills"],
+                    "full_report": report
+                }
 
-                    hybrid = HybridMatcher()
-                    match_res = hybrid.match(raw_resume, jd_text)
-                    gap_res = SkillGapAnalyzer().analyze_gap(raw_resume, jd_text)
-                    ats_res = ATSAnalyzer().analyze_resume(raw_resume, jd_text)
-                    report = AIExplainer().generate_full_analysis(raw_resume, jd_text, match_res, ats_res)
-
-                    st.session_state.match_results = {
-                        "overall_match_percentage": match_res["overall_match_percentage"],
-                        "skill_match_percentage": match_res["skill_match_percentage"],
-                        "tfidf_match_percentage": match_res["tfidf_match_percentage"],
-                        "semantic_embedding_percentage": match_res["semantic_embedding_percentage"],
-                        "ats_score": ats_res["ats_score"],
-                        "matching_skills": gap_res["matching_skills"],
-                        "missing_skills": gap_res["missing_skills"],
-                        "partial_skills": gap_res["partial_skills"],
-                        "full_report": report
-                    }
-
-                st.success("Analysis Complete!")
-            except Exception as e:
-                st.error(f"Error during analysis: {str(e)}")
+            st.success("Analysis Complete!")
 
 # Display Results Dashboard Tabs
 if st.session_state.match_results is not None:
