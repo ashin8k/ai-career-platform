@@ -1,7 +1,14 @@
+import os
+import sys
+
+# Ensure project root directory is added to sys.path for Streamlit Cloud deployment
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 import streamlit as st
 import requests
 import json
-import os
 
 # Configure Streamlit page layout
 st.set_page_config(
